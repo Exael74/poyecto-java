@@ -188,6 +188,14 @@ public class Particle extends Circle {
         this.color = COLOR_PALETTE[this.colorId];
     }
     
+    // Método estático para acceder a un color específico de la paleta
+    public static Color getColorFromPalette(int index) {
+        if (index < 0 || index >= COLOR_PALETTE.length) {
+            index = 0;
+        }
+        return COLOR_PALETTE[index];
+    }
+    
     // Obtener el número total de colores en la paleta
     public static int getColorCount() {
         return COLOR_PALETTE.length;

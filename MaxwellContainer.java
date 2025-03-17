@@ -5,6 +5,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -37,6 +39,8 @@ public class MaxwellContainer extends JFrame {
     private JDialog statusWindow;
     private JTextField widthField;
     private JTextField heightField;
+    private JButton fastColorButton;
+    private JButton slowColorButton;
     
     // Estado de la última acción
     private boolean lastActionSuccessful = true;
@@ -115,11 +119,11 @@ public class MaxwellContainer extends JFrame {
         
         // Panel para selección de colores
         JPanel colorPanel = new JPanel();
-        JButton fastColorButton = new JButton("Fast Particles Color");
+        fastColorButton = new JButton("Fast Particles Color");
         fastColorButton.setBackground(fastParticleColor);
         fastColorButton.setForeground(getContrastColor(fastParticleColor));
         
-        JButton slowColorButton = new JButton("Slow Particles Color");
+        slowColorButton = new JButton("Slow Particles Color");
         slowColorButton.setBackground(slowParticleColor);
         slowColorButton.setForeground(getContrastColor(slowParticleColor));
         
@@ -128,43 +132,39 @@ public class MaxwellContainer extends JFrame {
         
         // Configurar color picker para partículas rápidas
         fastColorButton.addActionListener(e -> {
-            Color selectedColor = JColorChooser.showDialog(
-                this, "Choose Fast Particles Color", fastParticleColor);
-                
-            if (selectedColor != null && !selectedColor.equals(slowParticleColor)) {
-                fastParticleColor = selectedColor;
-                fastColorButton.setBackground(fastParticleColor);
-                fastColorButton.setForeground(getContrastColor(fastParticleColor));
-                updateParticleColors();
+            try {
+                // Mostrar paleta de colores personalizada para partículas rápidas
+                simulationPanel.showColorPalette(true);
+                setStatusMessage("Seleccione un color para las partículas rápidas");
                 lastActionSuccessful = true;
-                simulationPanel.repaint();
-            } else if (selectedColor != null) {
-                JOptionPane.showMessageDialog(this, 
-                    "Fast and slow particles cannot have the same color.", 
-                    "Invalid Color Selection", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
                 lastActionSuccessful = false;
+                setStatusMessage("Error al mostrar la paleta de colores: " + ex.getMessage());
             }
         });
         
         // Configurar color picker para partículas lentas
         slowColorButton.addActionListener(e -> {
-            Color selectedColor = JColorChooser.showDialog(
-                this, "Choose Slow Particles Color", slowParticleColor);
-                
-            if (selectedColor != null && !selectedColor.equals(fastParticleColor)) {
-                slowParticleColor = selectedColor;
-                slowColorButton.setBackground(slowParticleColor);
-                slowColorButton.setForeground(getContrastColor(slowParticleColor));
-                updateParticleColors();
+            try {
+                // Mostrar paleta de colores personalizada para partículas lentas
+                simulationPanel.showColorPalette(false);
+                setStatusMessage("Seleccione un color para las partículas lentas");
                 lastActionSuccessful = true;
-                simulationPanel.repaint();
-            } else if (selectedColor != null) {
-                JOptionPane.showMessageDialog(this, 
-                    "Fast and slow particles cannot have the same color.", 
-                    "Invalid Color Selection", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
                 lastActionSuccessful = false;
+                setStatusMessage("Error al mostrar la paleta de colores: " + ex.getMessage());
             }
         });
+        
+        // Botón para cancelar selección de color
+        JButton cancelColorButton = new JButton("Cancel Color Selection");
+        cancelColorButton.addActionListener(e -> {
+            if (simulationPanel.isColorPaletteVisible()) {
+                simulationPanel.hideColorPalette();
+                setStatusMessage("Selección de color cancelada");
+            }
+        });
+        colorPanel.add(cancelColorButton);
         
         // Organizar paneles superiores
         JPanel topControlPanel = new JPanel(new BorderLayout());
@@ -176,6 +176,18 @@ public class MaxwellContainer extends JFrame {
         simulationPanel = new Canvas(this);
         simulationPanel.initShapes(); // Inicializa el rectángulo del contenedor y otras formas base
         add(simulationPanel, BorderLayout.CENTER);
+        
+        // Añadir KeyListener para cerrar paleta con Escape
+        simulationPanel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && simulationPanel.isColorPaletteVisible()) {
+                    simulationPanel.hideColorPalette();
+                    setStatusMessage("Selección de color cancelada");
+                }
+            }
+        });
+        simulationPanel.setFocusable(true);
         
         // Crear ventana de estado (inicialmente no visible)
         setupStatusWindow();
@@ -752,7 +764,7 @@ public class MaxwellContainer extends JFrame {
         }
     }
     
-        private boolean isPointOnParticle(int x, int y, Particle p) {
+    private boolean isPointOnParticle(int x, int y, Particle p) {
         // Utilizamos el método contains de Circle
         return p.contains(x, y);
     }
@@ -825,6 +837,43 @@ public class MaxwellContainer extends JFrame {
             if (m.getSpeed() < SPEED_THRESHOLD) count++;
         }
         return count;
+    }
+    
+    // Métodos para establecer colores de partículas desde la paleta
+    public void setFastParticleColor(Color color) {
+        if (!color.equals(slowParticleColor)) {
+            fastParticleColor = color;
+            fastColorButton.setBackground(fastParticleColor);
+            fastColorButton.setForeground(getContrastColor(fastParticleColor));
+            updateParticleColors();
+            lastActionSuccessful = true;
+            setStatusMessage("Color de partículas rápidas actualizado");
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Las partículas rápidas y lentas no pueden tener el mismo color.", 
+                "Selección de color inválida", JOptionPane.WARNING_MESSAGE);
+            lastActionSuccessful = false;
+            setStatusMessage("Error: colores de partículas deben ser diferentes");
+        }
+        simulationPanel.repaint();
+    }
+
+    public void setSlowParticleColor(Color color) {
+        if (!color.equals(fastParticleColor)) {
+            slowParticleColor = color;
+            slowColorButton.setBackground(slowParticleColor);
+            slowColorButton.setForeground(getContrastColor(slowParticleColor));
+            updateParticleColors();
+            lastActionSuccessful = true;
+            setStatusMessage("Color de partículas lentas actualizado");
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Las partículas rápidas y lentas no pueden tener el mismo color.", 
+                "Selección de color inválida", JOptionPane.WARNING_MESSAGE);
+            lastActionSuccessful = false;
+            setStatusMessage("Error: colores de partículas deben ser diferentes");
+        }
+        simulationPanel.repaint();
     }
     
     // Getters para el Canvas y otras clases
