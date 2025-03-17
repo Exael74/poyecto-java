@@ -1,0 +1,23 @@
+#BlueJ class context
+comment0.target=Demon
+comment1.params=positionX\ positionY
+comment1.target=Demon(int,\ int)
+comment10.params=
+comment10.target=Triangle\ getRightTriangle()
+comment2.params=g\ demonNumber\ canvas
+comment2.target=void\ draw(java.awt.Graphics,\ int,\ Canvas)
+comment3.params=leftChamber\ rightChamber\ leftMargin\ containerWidth\ speedThreshold
+comment3.target=void\ operateGate(java.util.ArrayList,\ java.util.ArrayList,\ int,\ int,\ double)
+comment4.params=
+comment4.target=int\ getPositionX()
+comment5.params=positionX
+comment5.target=void\ setPositionX(int)
+comment6.params=
+comment6.target=int\ getPositionY()
+comment7.params=positionY
+comment7.target=void\ setPositionY(int)
+comment8.params=
+comment8.target=int\ getTriangleSize()
+comment9.params=
+comment9.target=Triangle\ getLeftTriangle()
+numComments=11
